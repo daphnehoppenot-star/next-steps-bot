@@ -14,6 +14,8 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from config import SECRET_KEY, ALLOWED_EMAIL_DOMAINS
 from salesforce_client import (
     get_opps_for_owner,
+    get_all_open_opps,
+    build_summary,
     format_next_step,
     update_next_step,
     still_accurate,
@@ -34,8 +36,14 @@ app.secret_key = SECRET_KEY
 
 @app.route("/")
 def index():
-    """Landing page — email input."""
-    return render_template("index.html")
+    """Landing page — email input + summary tables."""
+    summary = None
+    try:
+        all_opps = get_all_open_opps()
+        summary = build_summary(all_opps)
+    except Exception as e:
+        logger.error(f"Failed to load summary: {e}")
+    return render_template("index.html", summary=summary)
 
 
 @app.route("/opps", methods=["POST"])

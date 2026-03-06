@@ -2,7 +2,7 @@
 Salesforce client — queries open Opportunities and updates the NextStep field.
 """
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from simple_salesforce import Salesforce
 from config import SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN, SF_DOMAIN
 
@@ -149,6 +149,146 @@ def still_accurate(opportunity_id: str, sf=None) -> str:
 
     update_next_step(opportunity_id, updated, sf)
     return updated
+
+
+def get_all_open_opps(sf=None) -> list[dict]:
+    """
+    Query ALL open Opportunities with owner info for summary tables.
+
+    Returns a list of dicts:
+        [
+            {
+                "id": "006...",
+                "name": "Acme Corp — Renewal 2026",
+                "owner_name": "John Smith",
+                "owner_email": "john@voyantis.ai",
+                "stage": "Negotiation",
+                "next_step": "Waiting for security review (3/1/2026)",
+                "next_step_date": "3/1/2026",  # or None
+            },
+            ...
+        ]
+    """
+    if sf is None:
+        sf = get_sf_connection()
+
+    query = """
+        SELECT
+            Id,
+            Name,
+            Owner.Name,
+            Owner.Email,
+            StageName,
+            NextStep
+        FROM Opportunity
+        WHERE IsClosed = false
+        ORDER BY Owner.Name ASC, CloseDate ASC
+    """
+
+    results = sf.query_all(query)
+    opps = []
+
+    for record in results["records"]:
+        raw_ns = record.get("NextStep") or ""
+        ns_date = None
+        date_match = re.search(r"\((\d{1,2}/\d{1,2}/\d{4})\)\s*$", raw_ns)
+        if date_match:
+            ns_date = date_match.group(1)
+
+        owner = record.get("Owner") or {}
+        opps.append(
+            {
+                "id": record["Id"],
+                "name": record["Name"],
+                "owner_name": owner.get("Name", "Unknown"),
+                "owner_email": owner.get("Email", ""),
+                "stage": record["StageName"],
+                "next_step": raw_ns,
+                "next_step_date": ns_date,
+            }
+        )
+
+    return opps
+
+
+def get_last_monday() -> datetime:
+    """Return the most recent Monday at 9am (the last reminder send time)."""
+    now = datetime.now()
+    days_since_monday = now.weekday()  # Monday=0
+    if days_since_monday == 0 and now.hour >= 9:
+        # It's Monday past 9am — use today
+        return now.replace(hour=9, minute=0, second=0, microsecond=0)
+    else:
+        # Go back to the previous Monday
+        days_back = days_since_monday if days_since_monday > 0 else 7
+        last_monday = now - timedelta(days=days_back)
+        return last_monday.replace(hour=9, minute=0, second=0, microsecond=0)
+
+
+def build_summary(opps: list[dict]) -> dict:
+    """
+    Build summary data from all open opportunities.
+
+    Returns:
+        {
+            "by_owner": [{"name": "John Smith", "count": 5, "completed": True}, ...],
+            "by_stage": [{"stage": "Negotiation", "count": 3}, ...],
+            "total": 42,
+            "last_reminder": "3/2/2026",
+        }
+    """
+    from collections import defaultdict
+
+    last_monday = get_last_monday()
+    last_monday_str = last_monday.strftime("%-m/%-d/%Y")
+
+    # Group by owner
+    owner_opps = defaultdict(list)
+    stage_counts = defaultdict(int)
+
+    for opp in opps:
+        owner_opps[opp["owner_name"]].append(opp)
+        stage_counts[opp["stage"]] += 1
+
+    # Build owner summary with completion status
+    by_owner = []
+    for name in sorted(owner_opps.keys()):
+        owner_list = owner_opps[name]
+        # Check if all opps have a next_step_date on or after last Monday
+        all_completed = True
+        for o in owner_list:
+            if not o["next_step_date"]:
+                all_completed = False
+                break
+            try:
+                ns_dt = datetime.strptime(o["next_step_date"], "%m/%d/%Y")
+            except ValueError:
+                all_completed = False
+                break
+            if ns_dt < last_monday.replace(hour=0, minute=0, second=0, microsecond=0):
+                all_completed = False
+                break
+
+        by_owner.append(
+            {
+                "name": name,
+                "count": len(owner_list),
+                "completed": all_completed,
+            }
+        )
+
+    # Build stage summary
+    by_stage = [
+        {"stage": stage, "count": count}
+        for stage, count in sorted(stage_counts.items(), key=lambda x: -x[1])
+    ]
+
+    return {
+        "by_owner": by_owner,
+        "by_stage": by_stage,
+        "total": len(opps),
+        "last_reminder": last_monday_str,
+    }
 
 
 def close_opportunity(opportunity_id: str, sf=None) -> str:
