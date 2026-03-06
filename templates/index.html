@@ -219,27 +219,6 @@
         </tbody>
       </table>
     </div>
-
-    <div class="summary-card">
-      <h3>By Stage</h3>
-      <p class="sub">All open opportunities</p>
-      <table class="summary-table">
-        <thead>
-          <tr>
-            <th>Stage</th>
-            <th>Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in summary.by_stage %}
-          <tr>
-            <td>{{ row.stage }}</td>
-            <td>{{ row.count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
   {% endif %}
 </body>
