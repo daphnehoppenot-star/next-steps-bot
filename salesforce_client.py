@@ -260,6 +260,15 @@ STAGE_ORDER = [
     "Stage 4: Legal",
 ]
 
+# Short display labels for the UI
+STAGE_DISPLAY_LABEL = {
+    "Stage 0: Pitch Booked": "Pitch Booked",
+    "Stage 1: Person (MQL) || Onboarded || Upcoming": "Person (MQL)",
+    "Stage 2: Discovery (SQL) || Experiment || Discovery || Identified": "Discovery (SQL)",
+    "Stage 3: Proposal": "Proposal",
+    "Stage 4: Legal": "Legal",
+}
+
 
 def build_summary(opps: list[dict]) -> dict:
     """
@@ -323,7 +332,11 @@ def build_summary(opps: list[dict]) -> dict:
             return 999  # Unknown stages go last
 
     by_stage = [
-        {"stage": stage, "count": count}
+        {
+            "stage": stage,
+            "label": STAGE_DISPLAY_LABEL.get(stage, stage),
+            "count": count,
+        }
         for stage, count in stage_counts.items()
     ]
     by_stage.sort(key=stage_sort_key)
