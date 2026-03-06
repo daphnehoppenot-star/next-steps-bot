@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Opportunities — Next Steps Bot — Voyantis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #100030;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header .logo { margin-bottom: 12px; }
+    .header .logo svg { height: 36px; width: auto; }
+    .header h1 {
+      font-size: 24px;
+      color: #FCFCFE;
+      margin-bottom: 4px;
+    }
+    .header .email {
+      color: #A0A7F5;
+      font-size: 14px;
+    }
+    .progress-bar {
+      background: rgba(160,167,245,0.2);
+      border-radius: 8px;
+      height: 8px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #FF3367, #A0A7F5);
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.5s ease;
+    }
+    .progress-label {
+      text-align: center;
+      font-size: 14px;
+      color: #A0A7F5;
+      margin-bottom: 24px;
+    }
+
+    /* ── Opportunity Card ─────────────────────────── */
+    .opp-card {
+      background: #FCFCFE;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      padding: 24px;
+      margin-bottom: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .opp-card.done {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .opp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .opp-account {
+      font-size: 18px;
+      font-weight: 700;
+      color: #100030;
+    }
+    .opp-amount {
+      font-size: 16px;
+      font-weight: 600;
+      color: #FF3367;
+      white-space: nowrap;
+    }
+    .opp-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 12px;
+    }
+    .opp-meta span { margin-right: 12px; }
+    .opp-current-ns {
+      background: #f4f4fc;
+      border-left: 3px solid #A0A7F5;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #333;
+    }
+    .opp-current-ns .ns-date {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* ── Buttons row ──────────────────────────────── */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 0;
+    }
+    .btn {
+      padding: 8px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background: #FCFCFE;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #333;
+    }
+    .btn:hover {
+      border-color: #A0A7F5;
+      color: #100030;
+    }
+    .btn.primary {
+      background: #FF3367;
+      color: #fff;
+      border-color: #FF3367;
+    }
+    .btn.primary:hover { background: #e02a5a; }
+    .btn.danger {
+      color: #d32f2f;
+      border-color: #fcc;
+    }
+    .btn.danger:hover { background: #fff0f0; }
+
+    /* ── Input area (appears after button click) ──── */
+    .input-area {
+      margin-top: 16px;
+      display: none;
+    }
+    .input-area.show { display: block; }
+    .input-area label {
+      display: block;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .input-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .prefix-label {
+      background: #100030;
+      color: #FCFCFE;
+      padding: 10px 12px;
+      border-radius: 8px 0 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+    .input-row input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e0e0e0;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      outline: none;
+    }
+    .input-row input[type="text"]:focus { border-color: #A0A7F5; }
+    .input-row.no-prefix input[type="text"] {
+      border-left: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    .input-row.no-prefix input[type="text"]:focus { border-color: #A0A7F5; }
+    .submit-row {
+      display: flex;
+      gap: 8px;
+    }
+    .submit-row .btn { flex: 1; text-align: center; }
+
+    /* ── Confirm overlay ──────────────────────────── */
+    .confirm-area {
+      margin-top: 16px;
+      display: none;
+      background: #f4f4fc;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .confirm-area.show { display: block; }
+    .confirm-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #100030;
+      margin-bottom: 12px;
+    }
+
+    /* ── Success banner ───────────────────────────── */
+    .success-banner {
+      display: none;
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .success-banner.show { display: block; }
+
+    /* ── Close confirm ────────────────────────────── */
+    .close-confirm {
+      margin-top: 16px;
+      display: none;
+      background: #fff8f0;
+      border: 2px solid #ffcc80;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .close-confirm.show { display: block; }
+    .close-confirm p {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    /* ── All done ─────────────────────────────────── */
+    .all-done {
+      text-align: center;
+      padding: 48px 24px;
+      display: none;
+    }
+    .all-done.show { display: block; }
+    .all-done .emoji { font-size: 48px; margin-bottom: 12px; }
+    .all-done h2 { color: #FCFCFE; margin-bottom: 8px; }
+    .all-done p { color: #A0A7F5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <svg width="321" height="65" viewBox="0 0 321 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M59.0955 10C61.8583 10 64.0934 7.7606 64.0934 5.00216C64.0934 2.24367 61.8583 0 59.0955 0C56.3328 0 54.0977 2.23938 54.0977 4.99784C54.0977 7.75633 56.337 9.99572 59.0955 9.99572V10Z" fill="#FCFCFE"/>
+          <path d="M61.1777 16.9583C60.1023 14.9667 57.8312 13.8721 55.3864 14.1711C52.9175 14.47 50.9981 16.1192 50.4872 18.3663C49.4454 23.0389 48.0425 27.5282 46.3162 31.6993C44.3052 36.3044 41.9472 40.3983 39.3095 43.875C37.1589 46.7103 34.7189 48.9768 32.25 50.4329C29.9402 51.7975 27.7269 52.3765 25.856 52.111C23.985 51.846 22.5335 50.7464 21.5498 48.8466C20.4504 46.7299 19.9795 43.8746 20.1676 40.1278C25.8203 38.2597 29.9402 34.7179 32.8142 30.0261C33.7401 28.5119 35.341 25.4692 35.6641 22.0986C35.9823 18.7762 34.96 15.989 32.7081 14.0457C29.6365 11.2827 24.7855 11.0512 21.1158 13.4815C15.4409 17.6655 12.4209 24.1153 10.2148 30.6323C9.01032 30.7609 7.9175 30.8136 6.38444 30.9616C4.49941 31.1435 2.94469 31.469 1.70219 32.7072C0.459697 33.9453 0 35.5858 0 36.8637C0 38.1417 0.470294 39.7044 1.6829 40.9143C2.91052 42.1391 4.05536 42.549 5.79612 42.5876C6.66894 42.602 7.63334 42.5611 8.47239 42.455C8.57367 51.4629 12.5326 58.7029 19.1918 62.0108C21.6173 63.2164 24.2309 63.8047 26.912 63.8047C32.033 63.8047 37.4145 61.6539 42.2606 57.502C50.3038 50.6694 56.2206 40.6636 60.3384 26.911C60.8561 25.1849 61.4252 23.3848 61.7516 21.6164C62.094 19.755 61.9154 18.2699 61.1824 16.9486L61.1777 16.9583Z" fill="#FF3367"/>
+          <path d="M20.2373 44.0137C17.1893 45.8131 12.9792 46.4864 8.79375 46.4913C8.59747 45.1896 8.47956 43.8444 8.46387 42.45C11.086 42.2113 16.4397 41.4893 20.1827 40.12C20.1046 41.5106 20.1301 42.9479 20.2373 44.0137Z" fill="#D32A5F"/>
+          <path d="M19.9913 14.3675C22.1793 13.1121 24.5031 12.9878 25.8634 15.5616C28.0898 19.7768 23.9737 26.1433 20.2111 28.2218C17.2126 29.8777 12.4991 30.4123 10.2179 30.627C12.272 24.5591 15.0398 18.5439 19.9913 14.3675Z" fill="#D32A5F"/>
+          <path d="M175.387 19.8398C175.794 19.9061 176.143 19.9898 176.387 20.0859C176.504 20.1324 176.628 20.1922 176.719 20.2773C176.817 20.3687 176.925 20.5444 176.844 20.7578L164.715 53.2227C163.294 57.0118 161.779 59.7925 159.797 61.6211C157.801 63.4615 155.361 64.3164 152.152 64.3164C150.26 64.3164 148.404 64.0564 146.551 63.6914V56.3438C147.618 56.4742 148.685 56.5742 149.762 56.5742C151.832 56.5741 154.406 56.1909 155.402 52.4375L142.613 20.7617C142.577 20.6681 142.576 20.5631 142.609 20.4688C142.64 20.3822 142.694 20.318 142.742 20.2734C142.836 20.1876 142.964 20.1246 143.086 20.0781C143.337 19.9822 143.696 19.9013 144.117 19.8359C144.968 19.7039 146.146 19.6211 147.398 19.6211C148.649 19.6211 149.749 19.6941 150.562 19.8203C150.968 19.8831 151.315 19.9618 151.578 20.0586C151.709 20.1067 151.83 20.162 151.93 20.2305C152.026 20.2969 152.131 20.394 152.184 20.5312L152.188 20.5352L160.195 42.2773L167.598 20.5469L167.703 20.3633C167.747 20.3131 167.798 20.2738 167.844 20.2422C167.939 20.1759 168.055 20.1213 168.18 20.0742C168.432 19.9791 168.768 19.8973 169.16 19.832C169.948 19.701 171.015 19.6211 172.223 19.6211C173.281 19.6397 174.34 19.6695 175.387 19.8398Z" fill="#FCFCFE"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M125.266 19.2617C130.529 19.2617 134.8 21.0193 137.754 24.0859C140.707 27.1513 142.316 31.4982 142.316 36.6289C142.316 41.7598 140.706 46.1375 137.738 49.2344C134.768 52.3329 130.467 54.1209 125.141 54.1211C119.878 54.1211 115.607 52.3671 112.652 49.3008C109.7 46.2355 108.086 41.8883 108.086 36.7578C108.086 31.6578 109.7 27.2802 112.668 24.1758C115.637 21.0696 119.938 19.2617 125.266 19.2617ZM125.203 26.5625C122.645 26.5625 120.499 27.5337 118.988 29.2695C117.475 31.009 116.578 33.5415 116.578 36.6914C116.578 39.8418 117.474 42.3926 118.988 44.1484C120.499 45.9003 122.647 46.8867 125.203 46.8867C127.759 46.8866 129.905 45.9001 131.414 44.1484C132.926 42.3927 133.82 39.8418 133.82 36.6914C133.82 33.5414 132.926 31.0089 131.414 29.2695C129.906 27.5338 127.761 26.5626 125.203 26.5625Z" fill="#FCFCFE"/>
+          <path d="M302.055 19.332C306.984 19.3321 310.523 20.6125 312.883 22.6367C315.245 24.6627 316.392 27.41 316.586 30.2812L316.59 30.3047C316.587 30.4893 316.469 30.6153 316.383 30.6836C316.292 30.755 316.179 30.8104 316.062 30.8555C315.824 30.9473 315.497 31.0239 315.117 31.0859C314.352 31.2109 313.307 31.289 312.16 31.2891C311.014 31.2891 309.982 31.2192 309.223 31.0977C308.845 31.0372 308.519 30.9615 308.277 30.8672C308.158 30.8204 308.042 30.7641 307.949 30.6914C307.859 30.6206 307.755 30.5068 307.73 30.3438C307.547 29.1245 307.139 28.1011 306.324 27.3789C305.509 26.6579 304.24 26.1953 302.242 26.1953C300.636 26.1954 299.532 26.4902 298.836 26.9727C298.159 27.4424 297.84 28.1097 297.84 28.9609C297.84 30.1518 298.339 30.6788 299.496 31.1641C300.081 31.4092 300.818 31.6153 301.715 31.832C302.609 32.0479 303.653 32.2746 304.836 32.5586C307.944 33.2806 311.126 34.1062 313.531 35.6992C316.114 37.4094 317.501 40.0688 317.588 43.1484C317.678 46.3489 316.481 49.3978 313.859 51.332C310.818 53.5759 306.973 53.9667 303.312 54.0703C297.916 54.0703 294.03 52.7359 291.457 50.5586C288.88 48.3772 287.656 45.3762 287.527 42.125L287.523 42.1133C287.523 41.9272 287.64 41.7997 287.727 41.7305C287.817 41.6579 287.934 41.6041 288.051 41.5586C288.288 41.4664 288.613 41.3866 288.992 41.3242C289.758 41.1984 290.807 41.1211 291.957 41.1211L293.582 41.1758C294.084 41.2106 294.539 41.2613 294.922 41.3242C295.301 41.3866 295.626 41.4664 295.863 41.5586C295.98 41.6041 296.097 41.6579 296.188 41.7305C296.269 41.7962 296.376 41.9149 296.387 42.0859L296.465 42.6797C296.696 44.0324 297.274 45.1103 298.223 45.8789C299.313 46.7618 300.934 47.2695 303.188 47.2695C305.106 47.2695 306.331 46.8968 307.07 46.3281C308.237 45.4297 308.454 43.451 307.535 42.293C307.173 41.8372 306.635 41.4752 305.934 41.1719C304.514 40.5582 302.549 40.2249 300.285 39.7148C297.453 39.0541 294.474 38.2095 292.203 36.6797C289.912 35.1359 288.336 32.8877 288.336 29.4648C288.336 26.4426 289.592 23.8927 291.953 22.1094C294.305 20.333 297.732 19.332 302.055 19.332Z" fill="#FCFCFE"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M193.703 18.9492C197.318 18.9492 200.457 19.9437 202.695 21.875C204.939 23.8112 206.246 26.6648 206.246 30.3164L206.25 44.957C206.25 46.4335 207.844 46.2963 208.852 46.1055V52.0273C207.371 52.7354 205.793 53.1174 204.148 53.1172C201.672 53.1168 199.563 51.8764 198.738 49.5312C197.797 51.0156 195.976 52.0244 194.105 52.6875C191.986 53.4387 189.611 53.7519 187.602 53.7461C184.364 53.7461 181.687 52.8004 179.816 51.1094C177.943 49.4157 176.903 47.0001 176.902 44.1211C176.902 40.5894 178.323 38.1668 180.684 36.457C183.022 34.7635 186.272 33.776 189.93 33.0508C191.802 32.669 193.755 32.3966 195.535 31.6758C196.3 31.3661 196.916 30.9989 197.336 30.5391C197.748 30.0874 197.984 29.5342 197.984 28.8281C197.984 27.9007 197.668 27.1366 196.965 26.5938C196.248 26.0402 194.792 25.716 193.328 25.6836C191.502 25.6431 189.748 26.0876 188.805 26.875C187.869 27.6575 187.364 28.8711 187.211 30.6211L187.203 30.6172C187.193 30.7861 187.099 30.9066 187.016 30.9766C186.925 31.0526 186.806 31.1122 186.688 31.1602C186.447 31.2569 186.117 31.3369 185.734 31.4023C184.962 31.5342 183.905 31.6133 182.746 31.6133C182.506 31.6131 181.452 31.5588 180.461 31.4375C179.966 31.3769 179.472 31.2965 179.098 31.1953C178.913 31.1454 178.737 31.0848 178.602 31.0078C178.534 30.9695 178.461 30.9181 178.402 30.8477C178.34 30.7733 178.286 30.6643 178.293 30.5312C178.589 27.3786 179.679 24.4657 182.168 22.3633C184.672 20.2489 188.444 18.9495 193.703 18.9492ZM197.984 37.1914C196.733 37.7427 194.877 38.2156 192.332 38.8242H192.324C190.159 39.2818 188.64 39.8741 187.656 40.6406C186.691 41.3931 186.227 42.3239 186.191 43.5273C186.167 45.3142 187.665 46.7837 189.441 46.8555C193.767 47.0295 197.984 44.2744 197.984 39.6523V37.1914Z" fill="#FCFCFE"/>
+          <path d="M260.414 10.9453C260.808 11.01 261.137 11.0892 261.371 11.1797C261.487 11.2244 261.588 11.2755 261.664 11.3359C261.738 11.3947 261.815 11.4847 261.816 11.6055L261.82 20.4727H267.609V27.4102H261.816V42.7852C261.816 44.4752 262.117 45.3925 262.641 45.8945C263.864 47.0645 266.444 46.4873 267.922 46.2461V52.8594C266.158 53.2869 264.35 53.5234 262.535 53.5234C259.307 53.5234 256.876 52.8277 255.258 51.1211C253.642 49.4165 252.867 46.7367 252.867 42.8516V27.4102H248.34V20.4727H252.871L252.867 11.6055C252.868 11.4852 252.942 11.3949 253.016 11.3359C253.092 11.275 253.197 11.2246 253.312 11.1797C253.546 11.0893 253.873 11.0099 254.266 10.9453C255.056 10.8155 256.144 10.7344 257.34 10.7344C258.367 10.77 259.397 10.7785 260.414 10.9453Z" fill="#FCFCFE"/>
+          <path d="M280.867 19.8125C281.264 19.8778 281.604 19.9549 281.852 20.0508C281.974 20.0982 282.09 20.16 282.184 20.2344C282.272 20.305 282.392 20.4303 282.395 20.6172L282.398 53.1328H273.148L273.156 20.6211C273.158 20.4356 273.275 20.3054 273.363 20.2344C273.457 20.1597 273.577 20.1021 273.699 20.0547C273.947 19.9586 274.287 19.8778 274.684 19.8125C275.483 19.6811 276.574 19.5977 277.773 19.5977C278.808 19.6334 279.843 19.6442 280.867 19.8125Z" fill="#FCFCFE"/>
+          <path d="M241.363 22.2656C243.07 23.9726 244.154 26.3962 244.398 29.4844L244.453 30.8477V53.125H235.137V33.4922C235.137 31.1934 234.703 29.5968 233.859 28.5781C232.872 27.3857 231.379 27.1261 229.918 27.0742C227.771 27.0742 226.096 27.6557 224.961 28.7617C223.828 29.8664 223.188 31.5369 223.188 33.8047V53.125H213.934V20.6562C213.934 20.4684 214.052 20.3409 214.141 20.2695C214.234 20.1947 214.354 20.1334 214.477 20.0859C214.724 19.9902 215.064 19.9128 215.461 19.8477C216.263 19.7162 217.359 19.6328 218.562 19.6328C219.765 19.6329 220.859 19.7163 221.66 19.8477C222.058 19.913 222.401 19.9898 222.648 20.0859C222.77 20.1333 222.887 20.1948 222.98 20.2695C223.069 20.341 223.188 20.4684 223.188 20.6562V24.2031C225.706 20.6799 229.916 19.183 234.141 19.3555C236.81 19.4644 239.443 20.3453 241.363 22.2656Z" fill="#FCFCFE"/>
+          <path d="M103.203 19.6211C104.405 19.6212 105.529 19.7062 106.344 19.8398C106.748 19.9061 107.092 19.99 107.336 20.0859C107.454 20.1325 107.577 20.1909 107.668 20.2734C107.762 20.3586 107.879 20.525 107.812 20.7383L107.809 20.75L96.4727 53.1172H86.5234L75.1875 20.7539L75.1641 20.6016C75.1656 20.4603 75.2404 20.3456 75.3164 20.2734C75.4095 20.1856 75.5356 20.1214 75.6562 20.0742C75.906 19.9768 76.2633 19.8966 76.6797 19.832C77.521 19.7016 78.6849 19.6211 79.9219 19.6211C80.9687 19.6543 82.0178 19.6601 83.0547 19.8242C83.456 19.8878 83.7998 19.966 84.0586 20.0625C84.1872 20.1104 84.3079 20.1655 84.4062 20.2344C84.4536 20.2676 84.5027 20.312 84.5469 20.3633L84.6523 20.5469L84.6562 20.5508L91.6211 42.6016L98.5898 20.5508L98.5938 20.5391C98.6432 20.3995 98.7502 20.3034 98.8398 20.2422C98.9348 20.1775 99.0513 20.1249 99.1758 20.0781C99.4271 19.9838 99.7613 19.9019 100.152 19.8359C100.938 19.7035 102.001 19.6211 103.203 19.6211Z" fill="#FCFCFE"/>
+          <path d="M277.77 5.10938C280.532 5.10938 282.77 7.35479 282.77 10.1133C282.769 12.8709 280.532 15.1094 277.77 15.1094C275.012 15.1084 272.773 12.8634 272.773 10.1055C272.774 7.34841 275.008 5.11034 277.77 5.10938Z" fill="#FCFCFE"/>
+        </svg>
+      </div>
+      <h1>Your Opportunities</h1>
+      <p class="email">{{ email }}</p>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <p class="progress-label" id="progressLabel">0 of {{ opps|length }} updated</p>
+
+    {% for opp in opps %}
+    <div class="opp-card" id="card-{{ loop.index0 }}" data-opp-id="{{ opp.id }}">
+      <div class="opp-header">
+        <span class="opp-account">{{ opp.account }}</span>
+        <span class="opp-amount">${{ "{:,.0f}".format(opp.amount) if opp.amount else 'N/A' }}</span>
+      </div>
+      <div class="opp-meta">
+        <span>{{ opp.stage }}</span>
+        <span>Closes {{ opp.close_date }}</span>
+      </div>
+
+      {% if opp.next_step %}
+      <div class="opp-current-ns">
+        {{ opp.next_step_text or opp.next_step }}
+        {% if opp.next_step_date %}
+        <div class="ns-date">📅 Last updated: {{ opp.next_step_date }}</div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="opp-current-ns" style="color: #999; font-style: italic;">No next steps logged</div>
+      {% endif %}
+
+      <!-- Action buttons -->
+      <div class="btn-row" id="btns-{{ loop.index0 }}">
+        <button class="btn primary" onclick="handleAction({{ loop.index0 }}, 'accurate')">Still accurate ✓</button>
+        <button class="btn" onclick="handleAction({{ loop.index0 }}, 'waiting')">Waiting for…</button>
+        <button class="btn" onclick="handleAction({{ loop.index0 }}, 'action')">Action item</button>
+        <button class="btn" onclick="handleAction({{ loop.index0 }}, 'meeting')">Meeting</button>
+        <button class="btn" onclick="handleAction({{ loop.index0 }}, 'call')">Call</button>
+        <button class="btn" onclick="handleAction({{ loop.index0 }}, 'other')">Other</button>
+        <button class="btn danger" onclick="handleAction({{ loop.index0 }}, 'close')">Close Opportunity</button>
+      </div>
+
+      <!-- Text input area (for waiting, action, meeting, call) -->
+      <div class="input-area" id="input-{{ loop.index0 }}">
+        <label id="input-label-{{ loop.index0 }}"></label>
+        <div class="input-row" id="input-row-{{ loop.index0 }}">
+          <input type="text" id="input-field-{{ loop.index0 }}" placeholder="">
+        </div>
+        <div class="submit-row">
+          <button class="btn primary" onclick="submitUpdate({{ loop.index0 }})">Save to Salesforce ✓</button>
+          <button class="btn" onclick="cancelInput({{ loop.index0 }})">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Close confirmation -->
+      <div class="close-confirm" id="close-{{ loop.index0 }}">
+        <p>This will set next steps to <strong>"Close Opportunity"</strong> for <strong>{{ opp.account }}</strong>. Are you sure?</p>
+        <div class="submit-row">
+          <button class="btn danger" onclick="confirmClose({{ loop.index0 }})">Yes, close it</button>
+          <button class="btn" onclick="cancelClose({{ loop.index0 }})">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="success-banner" id="success-{{ loop.index0 }}"></div>
+    </div>
+    {% endfor %}
+
+    <div class="all-done" id="allDone">
+      <div class="emoji">🎉</div>
+      <h2>All done!</h2>
+      <p>Every opportunity has been updated. Pipeline hygiene complete.</p>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = {{ opps|length }};
+    let completed = 0;
+    const cardActions = {}; // track which action was picked per card
+
+    const CONFIG = {
+      waiting: {
+        label: 'What are you waiting for, and from whom?',
+        prefix: 'Waiting for ',
+        placeholder: 'e.g. contract redlines from their legal team',
+      },
+      action: {
+        label: 'Who needs to take the action, and what do they need to do?',
+        prefix: '',
+        placeholder: 'e.g. Ben send the case study',
+      },
+      meeting: {
+        label: 'When and where is the meeting?',
+        prefix: 'Meeting ',
+        placeholder: 'e.g. in Dublin on March 4',
+      },
+      call: {
+        label: 'When is the call?',
+        prefix: 'Call ',
+        placeholder: 'e.g. on March 4 at 2pm',
+      },
+      other: {
+        label: 'What is the next step?',
+        prefix: 'Other Next Step: ',
+        placeholder: 'e.g. send revised proposal by Friday',
+      },
+    };
+
+    function handleAction(idx, action) {
+      cardActions[idx] = action;
+      const card = document.getElementById(`card-${idx}`);
+      const oppId = card.dataset.oppId;
+
+      // Hide all sub-areas
+      hide(`input-${idx}`);
+      hide(`close-${idx}`);
+      hide(`success-${idx}`);
+
+      if (action === 'accurate') {
+        // Fire immediately
+        stillAccurate(idx, oppId);
+      } else if (action === 'close') {
+        show(`close-${idx}`);
+      } else {
+        // Show text input
+        const cfg = CONFIG[action];
+        document.getElementById(`input-label-${idx}`).textContent = cfg.label;
+
+        const row = document.getElementById(`input-row-${idx}`);
+        const field = document.getElementById(`input-field-${idx}`);
+        field.value = '';
+        field.placeholder = cfg.placeholder;
+
+        // Remove old prefix if any
+        const oldPrefix = row.querySelector('.prefix-label');
+        if (oldPrefix) oldPrefix.remove();
+
+        if (cfg.prefix) {
+          row.classList.remove('no-prefix');
+          const prefixEl = document.createElement('span');
+          prefixEl.className = 'prefix-label';
+          prefixEl.textContent = cfg.prefix;
+          row.insertBefore(prefixEl, field);
+          field.style.borderLeft = 'none';
+          field.style.borderRadius = '0 8px 8px 0';
+        } else {
+          row.classList.add('no-prefix');
+          field.style.borderLeft = '2px solid #e0e0e0';
+          field.style.borderRadius = '8px';
+        }
+
+        show(`input-${idx}`);
+        field.focus();
+      }
+    }
+
+    async function submitUpdate(idx) {
+      const card = document.getElementById(`card-${idx}`);
+      const oppId = card.dataset.oppId;
+      const action = cardActions[idx];
+      const text = document.getElementById(`input-field-${idx}`).value.trim();
+
+      if (!text) {
+        document.getElementById(`input-field-${idx}`).focus();
+        return;
+      }
+
+      try {
+        const res = await fetch('/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ opp_id: oppId, action, text }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          markDone(idx, `✅ Updated: "${data.formatted}"`);
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function stillAccurate(idx, oppId) {
+      try {
+        const res = await fetch('/still-accurate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ opp_id: oppId }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          markDone(idx, `✅ Confirmed: "${data.formatted}"`);
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function confirmClose(idx) {
+      const card = document.getElementById(`card-${idx}`);
+      const oppId = card.dataset.oppId;
+
+      try {
+        const res = await fetch('/close', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ opp_id: oppId }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          markDone(idx, '✅ Marked as "Close Opportunity" in Salesforce.');
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function cancelInput(idx) {
+      hide(`input-${idx}`);
+    }
+
+    function cancelClose(idx) {
+      hide(`close-${idx}`);
+    }
+
+    function markDone(idx, message) {
+      const card = document.getElementById(`card-${idx}`);
+      hide(`btns-${idx}`);
+      hide(`input-${idx}`);
+      hide(`close-${idx}`);
+
+      const banner = document.getElementById(`success-${idx}`);
+      banner.textContent = message;
+      show(`success-${idx}`);
+
+      completed++;
+      updateProgress();
+
+      // Fade the card after a moment
+      setTimeout(() => { card.classList.add('done'); }, 1500);
+    }
+
+    function updateProgress() {
+      const pct = Math.round((completed / TOTAL) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressLabel').textContent = `${completed} of ${TOTAL} updated`;
+
+      if (completed === TOTAL) {
+        document.getElementById('allDone').classList.add('show');
+      }
+    }
+
+    function show(id) { document.getElementById(id).classList.add('show'); }
+    function hide(id) { document.getElementById(id).classList.remove('show'); }
+  </script>
+</body>
+</html>
