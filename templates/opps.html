@@ -237,9 +237,30 @@
       display: none;
     }
     .all-done.show { display: block; }
-    .all-done .emoji { font-size: 48px; margin-bottom: 12px; }
-    .all-done h2 { color: #FCFCFE; margin-bottom: 8px; }
-    .all-done p { color: #A0A7F5; }
+    .all-done .congrats-card {
+      background: #FCFCFE;
+      border-radius: 16px;
+      padding: 48px 32px;
+      max-width: 480px;
+      margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .all-done .emoji { font-size: 64px; margin-bottom: 16px; }
+    .all-done h2 { color: #100030; font-size: 28px; margin-bottom: 8px; }
+    .all-done p { color: #666; font-size: 16px; margin-bottom: 24px; }
+    .all-done .close-btn {
+      display: inline-block;
+      padding: 14px 36px;
+      background: #FF3367;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .all-done .close-btn:hover { background: #e02a5a; }
   </style>
 </head>
 <body>
@@ -331,9 +352,12 @@
     {% endfor %}
 
     <div class="all-done" id="allDone">
-      <div class="emoji">🎉</div>
-      <h2>All done!</h2>
-      <p>Every opportunity has been updated. Pipeline hygiene complete.</p>
+      <div class="congrats-card">
+        <div class="emoji">🎉</div>
+        <h2>Congrats!</h2>
+        <p>All opportunities updated. Pipeline hygiene complete.</p>
+        <button class="close-btn" onclick="window.close()">Close this tab</button>
+      </div>
     </div>
   </div>
 
@@ -516,7 +540,14 @@
       document.getElementById('progressLabel').textContent = `${completed} of ${TOTAL} updated`;
 
       if (completed === TOTAL) {
-        document.getElementById('allDone').classList.add('show');
+        // Hide header, progress bar, and all cards
+        setTimeout(() => {
+          document.querySelector('.header').style.display = 'none';
+          document.querySelector('.progress-bar').style.display = 'none';
+          document.getElementById('progressLabel').style.display = 'none';
+          document.querySelectorAll('.opp-card').forEach(c => c.style.display = 'none');
+          document.getElementById('allDone').classList.add('show');
+        }, 2000);
       }
     }
 
