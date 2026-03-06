@@ -95,8 +95,11 @@ def get_next_step(opportunity_id: str, sf=None) -> str:
     """Read the current NextStep field value for an Opportunity."""
     if sf is None:
         sf = get_sf_connection()
-    result = sf.Opportunity.get(opportunity_id, ["NextStep"])
-    return result.get("NextStep") or ""
+    result = sf.query(
+        f"SELECT NextStep FROM Opportunity WHERE Id = '{opportunity_id}'"
+    )
+    records = result.get("records", [])
+    return records[0].get("NextStep", "") if records else ""
 
 
 def update_next_step(opportunity_id: str, next_step_text: str, sf=None) -> bool:
