@@ -225,6 +225,42 @@ def get_last_monday() -> datetime:
         return last_monday.replace(hour=9, minute=0, second=0, microsecond=0)
 
 
+def _normalize_stage(raw_stage: str) -> str:
+    """
+    Map any legacy / abbreviated StageName to the current SFDC picklist value.
+
+    Current SFDC picklist (in pipeline order):
+        Stage 0: Pitch Booked
+        Stage 1: Person (MQL) || Onboarded || Upcoming
+        Stage 2: Discovery (SQL) || Experiment || Discovery || Identified
+        Stage 3: Proposal
+        Stage 4: Legal
+        Closed Won
+        Closed Lost
+    """
+    STAGE_MAP = {
+        # Legacy names → current SFDC picklist value
+        "Sales Qualified": "Stage 2: Discovery (SQL) || Experiment || Discovery || Identified",
+        "Discovery": "Stage 2: Discovery (SQL) || Experiment || Discovery || Identified",
+        "Proposal & Negotiation": "Stage 3: Proposal",
+        "Proposal & Negotiations": "Stage 3: Proposal",
+        "Legal & Procurement": "Stage 4: Legal",
+        "Legal & Procurement (& Tech Fit)": "Stage 4: Legal",
+        "Tech Fit": "Stage 4: Legal",
+    }
+    return STAGE_MAP.get(raw_stage, raw_stage)
+
+
+# Pipeline order for sorting the By Stage table
+STAGE_ORDER = [
+    "Stage 0: Pitch Booked",
+    "Stage 1: Person (MQL) || Onboarded || Upcoming",
+    "Stage 2: Discovery (SQL) || Experiment || Discovery || Identified",
+    "Stage 3: Proposal",
+    "Stage 4: Legal",
+]
+
+
 def build_summary(opps: list[dict]) -> dict:
     """
     Build summary data from all open opportunities.
@@ -232,7 +268,7 @@ def build_summary(opps: list[dict]) -> dict:
     Returns:
         {
             "by_owner": [{"name": "John Smith", "count": 5, "completed": True}, ...],
-            "by_stage": [{"stage": "Negotiation", "count": 3}, ...],
+            "by_stage": [{"stage": "Stage 3: Proposal", "count": 3}, ...],
             "total": 42,
             "last_reminder": "3/2/2026",
         }
@@ -248,7 +284,8 @@ def build_summary(opps: list[dict]) -> dict:
 
     for opp in opps:
         owner_opps[opp["owner_name"]].append(opp)
-        stage_counts[opp["stage"]] += 1
+        normalized = _normalize_stage(opp["stage"])
+        stage_counts[normalized] += 1
 
     # Build owner summary with completion status
     by_owner = []
@@ -277,11 +314,19 @@ def build_summary(opps: list[dict]) -> dict:
             }
         )
 
-    # Build stage summary
+    # Build stage summary — sorted by pipeline order
+    def stage_sort_key(item):
+        stage = item["stage"]
+        try:
+            return STAGE_ORDER.index(stage)
+        except ValueError:
+            return 999  # Unknown stages go last
+
     by_stage = [
         {"stage": stage, "count": count}
-        for stage, count in sorted(stage_counts.items(), key=lambda x: -x[1])
+        for stage, count in stage_counts.items()
     ]
+    by_stage.sort(key=stage_sort_key)
 
     return {
         "by_owner": by_owner,
