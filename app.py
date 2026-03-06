@@ -13,6 +13,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 from config import SECRET_KEY, ALLOWED_EMAIL_DOMAINS
 from salesforce_client import (
+    get_sf_connection,
     get_opps_for_owner,
     get_all_open_opps,
     build_summary,
@@ -63,7 +64,9 @@ def opps():
         )
 
     try:
-        opportunities = get_opps_for_owner(email)
+        sf = get_sf_connection()
+        opportunities = get_opps_for_owner(email, sf=sf)
+        sf_instance = sf.sf_instance  # e.g. "voyantis.my.salesforce.com"
     except Exception as e:
         logger.error(f"Salesforce query failed for {email}: {e}")
         return render_template(
@@ -77,7 +80,7 @@ def opps():
             error="No open opportunities found for this email.",
         )
 
-    return render_template("opps.html", email=email, opps=opportunities)
+    return render_template("opps.html", email=email, opps=opportunities, sf_instance=sf_instance)
 
 
 @app.route("/update", methods=["POST"])

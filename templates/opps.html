@@ -95,6 +95,13 @@
       margin-bottom: 12px;
     }
     .opp-meta span { margin-right: 12px; }
+    .sfdc-link {
+      color: #A0A7F5;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .sfdc-link:hover { text-decoration: underline; }
     .opp-current-ns {
       background: #f4f4fc;
       border-left: 3px solid #A0A7F5;
@@ -309,6 +316,7 @@
       <div class="opp-meta">
         <span>{{ opp.stage }}</span>
         <span>Closes {{ opp.close_date }}</span>
+        <a href="https://{{ sf_instance }}/lightning/r/Opportunity/{{ opp.id }}/view" target="_blank" class="sfdc-link">View in SFDC ↗</a>
       </div>
 
       {% if opp.next_step %}
